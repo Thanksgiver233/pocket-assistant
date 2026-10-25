@@ -1,0 +1,83 @@
+{
+  "name": "pia-pocket-desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "随身 — 本地个人助理桌面版（Electron 壳 + 内置 Node 服务）",
+  "type": "module",
+  "main": "main.cjs",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "dist:dir": "electron-builder --win --x64 --dir",
+    "dist": "electron-builder --win --x64",
+    "pack": "electron-builder --dir"
+  },
+  "devDependencies": {
+    "electron": "^45.0.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.pia.pocket",
+    "productName": "随身",
+    "copyright": "PIA",
+    "asar": false,
+    "compression": "maximum",
+    "files": [
+      "main.cjs",
+      "package.json",
+      "!**/*.map"
+    ],
+    "extraResources": [
+      {
+        "from": "../../packages/personal",
+        "to": "app/packages/personal",
+        "filter": [
+          "**/*",
+          "!test/**",
+          "!docs/**",
+          "!.tmp/**",
+          "!**/*.tmp.js"
+        ]
+      },
+      {
+        "from": "compat-launcher.bat",
+        "to": "compat-launcher.bat"
+      }
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "artifactName": "PocketAssistant-${version}-portable.exe",
+      "sign": null,
+      "verifyUpdateCodeSignature": false
+    },
+    "portable": {
+      "artifactName": "随身-Portable-${version}.exe"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "随身",
+      "artifactName": "随身-Setup-${version}.exe",
+      "uninstallDisplayName": "随身 (Pocket Assistant)",
+      "include": "installer.nsh"
+    },
+    "electronDist": ".electron",
+    "electronVersion": "45.0.0",
+    "forceCodeSigning": false
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/YOUR_GITHUB_USERNAME/personal-agent.git"
+  },
+  "bugs": {
+    "url": "https://github.com/YOUR_GITHUB_USERNAME/personal-agent/issues"
+  },
+  "homepage": "https://github.com/YOUR_GITHUB_USERNAME/personal-agent#readme",
+  "author": "PIA Contributors"
+}

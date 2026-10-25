@@ -1,0 +1,9 @@
+{
+  "appId": "com.pia.pocket",
+  "appName": "随身",
+  "webDir": "www",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  }
+}

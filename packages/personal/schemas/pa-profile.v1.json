@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://piagent.io/schemas/pa-profile.v1.json",
+  "title": "pa.profile.v1",
+  "description": "Committable policy file for a PIA workspace. Policy only: no personal data, no secrets.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "version": { "type": "integer", "const": 1 },
+    "persona": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "minLength": 1, "maxLength": 60 },
+        "language": { "type": "string", "pattern": "^[a-z]{2}-[A-Z]{2}$" },
+        "tone": { "type": "string", "enum": ["concise", "warm", "formal"] },
+        "address_as": { "type": "string", "maxLength": 20 }
+      }
+    },
+    "workspace_root": { "type": ["string", "null"] },
+    "autonomy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "default_mode": { "type": "string", "enum": ["read-only", "workspace-write", "full-access"] },
+        "default_level": { "type": "string", "enum": ["observe", "assist", "delegate"] },
+        "proactive": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "interrupt_per_day": { "type": "integer", "minimum": 0, "maximum": 5 },
+            "digest_per_day": { "type": "integer", "minimum": 0, "maximum": 20 },
+            "quiet_hours": {
+              "type": "array",
+              "maxItems": 4,
+              "items": { "type": "string", "pattern": "^[0-2][0-9]:[0-5][0-9]-[0-2][0-9]:[0-5][0-9]$" }
+            },
+            "cooldown_minutes": { "type": "integer", "minimum": 0, "maximum": 1440 }
+          }
+        }
+      }
+    },
+    "budget": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "per_turn_usd": { "type": "number", "minimum": 0, "maximum": 50 },
+        "per_day_usd": { "type": "number", "minimum": 0, "maximum": 500 },
+        "proactive_share": { "type": "number", "minimum": 0, "maximum": 1 },
+        "on_exceed": { "type": "string", "enum": ["stop", "ask", "degrade"] }
+      }
+    },
+    "connectors": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "allow": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "deny": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "default_data_ceiling": { "type": "string", "enum": ["D0", "D1", "D2", "D3"] }
+      }
+    },
+    "tools": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "require_manifest": { "type": "boolean" },
+        "deny_risk": { "type": "array", "items": { "type": "string", "enum": ["R0", "R1", "R2", "R3", "R4"] } },
+        "confirm_risk": { "type": "array", "items": { "type": "string", "enum": ["R0", "R1", "R2", "R3", "R4"] } },
+        "standing_grant_max_ttl_h": { "type": "integer", "minimum": 1, "maximum": 8760 }
+      }
+    },
+    "memory": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "write_gate": { "type": "string", "enum": ["strict", "relaxed"] },
+        "retention_days": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "episodic": { "type": "integer", "minimum": 0, "maximum": 3650 },
+            "semantic": { "type": "integer", "minimum": 0, "maximum": 36500 },
+            "procedural": { "type": "integer", "minimum": 0, "maximum": 36500 }
+          }
+        },
+        "allow_d2": { "type": "boolean" }
+      }
+    },
+    "privacy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "egress": { "type": "string", "enum": ["never", "confirm", "allow"] },
+        "redaction": { "type": "boolean" },
+        "telemetry": { "type": "string", "enum": ["local", "off", "company"] }
+      }
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://piagent.io/schemas/trigger.v1.json",
+  "title": "pa.trigger.v1",
+  "description": "P2 contract, frozen now so the scheduler cannot invent a looser shape later. Every trigger declares its urgency ceiling, cooldown and daily cap.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "type", "action", "urgency_ceiling", "max_fires_per_day"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^t_[0-9A-Za-z]+$" },
+    "type": { "type": "string", "enum": ["cron", "event", "state", "context", "external"] },
+    "schedule": { "type": "string", "maxLength": 80 },
+    "predicate": { "type": "object" },
+    "action": { "type": "string", "minLength": 1 },
+    "urgency_ceiling": { "type": "string", "enum": ["silent", "log", "digest", "interrupt"] },
+    "cooldown_minutes": { "type": "integer", "minimum": 0, "maximum": 10080 },
+    "max_fires_per_day": { "type": "integer", "minimum": 1, "maximum": 96 },
+    "requires_presence": { "type": "boolean" }
+  }
+}

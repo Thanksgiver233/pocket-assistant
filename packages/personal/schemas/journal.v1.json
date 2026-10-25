@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://piagent.io/schemas/journal.v1.json",
+  "title": "pa.journal.v1",
+  "description": "One Run: intent, plan of actions, executed steps, and the pending confirmation that allows resume after a crash or a wait.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "run_id", "turn_id", "mode", "status", "created_at", "updated_at", "actions", "steps"],
+  "properties": {
+    "version": { "type": "integer", "const": 1 },
+    "run_id": { "type": "string", "pattern": "^r_[0-9A-Za-z]+$" },
+    "turn_id": { "type": "string" },
+    "intent": { "type": "string", "maxLength": 500 },
+    "mode": { "type": "string", "enum": ["read-only", "workspace-write", "full-access"] },
+    "status": {
+      "type": "string",
+      "enum": ["running", "awaiting_approval", "blocked", "done", "denied", "failed", "aborted"]
+    },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" },
+    "actions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "kind", "status"],
+        "properties": {
+          "id": { "type": "string" },
+          "kind": { "type": "string" },
+          "risk": { "type": "string" },
+          "status": { "type": "string" }
+        }
+      }
+    },
+    "steps": { "type": "array", "items": { "type": "object" } },
+    "pending": { "type": ["object", "null"] },
+    "artifacts": { "type": "array", "items": { "type": "object" } },
+    "error": { "type": ["string", "null"] }
+  }
+}

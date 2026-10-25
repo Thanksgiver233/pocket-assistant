@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2026 Thanksgiver233
+Copyright (c) 2026 PIA (随身 · Pocket Assistant) Contributors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,3 +19,13 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+---
+
+Additional notice (non-binding, but please read before forking):
+
+This project's core value is its *governance behaviour* — the consent ordering
+in `src/services/consent.mjs`, the fail-closed defaults, and the audit
+invariants asserted in `test/`. If you fork it, keeping those tests green is
+the difference between "a personal agent" and "a thing that asks for
+permission once and then does whatever it wants".

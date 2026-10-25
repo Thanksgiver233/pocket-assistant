@@ -1,0 +1,638 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#070b10" />
+<title>随身 · Personal Agent</title>
+<style>
+  :root{
+    --bg:#070b10; --panel:#0d141d; --panel-2:#101a24;
+    --line:rgba(255,255,255,.07); --line-2:rgba(255,255,255,.12);
+    --ink:#e8eef6; --ink-2:#9aa8bb; --ink-3:#5f6f84;
+    --acc:#2dd4bf; --acc-2:#22d3ee; --acc-dim:rgba(45,212,191,.12);
+    --warn:#f5b544; --warn-dim:rgba(245,181,68,.12);
+    --bad:#f87171; --ok:#4ade80;
+    --r:14px; --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;background:var(--bg);color:var(--ink);
+    font:14.5px/1.62 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    -webkit-font-smoothing:antialiased;overflow:hidden;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+    background:
+      radial-gradient(900px 500px at 12% -10%,rgba(34,211,238,.10),transparent 60%),
+      radial-gradient(800px 500px at 100% 0%,rgba(45,212,191,.08),transparent 55%),
+      linear-gradient(180deg,#070b10,#05080c);
+  }
+  body::after{
+    content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.55;
+    background-image:
+      linear-gradient(rgba(255,255,255,.022) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(255,255,255,.022) 1px,transparent 1px);
+    background-size:44px 44px;
+    mask-image:radial-gradient(circle at 50% 0%,#000 30%,transparent 78%);
+  }
+  button,input,textarea,select{font:inherit;color:inherit}
+  button{cursor:pointer;background:none;border:0}
+  ::-webkit-scrollbar{width:10px;height:10px}
+  ::-webkit-scrollbar-thumb{background:rgba(255,255,255,.09);border-radius:99px;border:3px solid transparent;background-clip:content-box}
+
+  .app{position:relative;z-index:1;display:grid;grid-template-columns:64px minmax(0,1fr) 372px;height:100vh}
+
+  .rail{display:flex;flex-direction:column;align-items:center;gap:6px;padding:16px 0;border-right:1px solid var(--line);background:rgba(10,16,23,.6)}
+  .logo{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;margin-bottom:10px;
+    background:linear-gradient(150deg,rgba(45,212,191,.22),rgba(34,211,238,.06));border:1px solid rgba(45,212,191,.35)}
+  .logo svg{width:17px;height:17px;stroke:var(--acc);fill:none;stroke-width:1.7}
+  .rail-btn{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;color:var(--ink-3);position:relative}
+  .rail-btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.6}
+  .rail-btn:hover{color:var(--ink);background:rgba(255,255,255,.04)}
+  .rail-btn.on{color:var(--acc);background:var(--acc-dim)}
+  .rail-btn .dot{position:absolute;top:8px;right:8px;width:6px;height:6px;border-radius:50%;background:var(--warn)}
+  .rail-spacer{flex:1}
+  .pulse{width:8px;height:8px;border-radius:50%;background:var(--ok);animation:pulse 2.4s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(74,222,128,.5)}70%{box-shadow:0 0 0 8px rgba(74,222,128,0)}100%{box-shadow:0 0 0 0 rgba(74,222,128,0)}}
+
+  .main{display:flex;flex-direction:column;min-width:0;position:relative}
+  .topbar{display:flex;align-items:center;gap:12px;padding:14px 24px;border-bottom:1px solid var(--line);background:rgba(10,16,23,.55)}
+  .title{font-weight:600;letter-spacing:.02em;display:flex;align-items:center;gap:9px}
+  .title small{color:var(--ink-3);font-weight:400;font-size:12px;font-family:var(--mono)}
+  .topbar .grow{flex:1}
+  .chip{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border:1px solid var(--line);border-radius:99px;font-size:12px;color:var(--ink-2);background:rgba(255,255,255,.02)}
+  .chip b{color:var(--ink);font-weight:600;font-family:var(--mono)}
+  .chip.acc{border-color:rgba(45,212,191,.3);color:var(--acc);background:var(--acc-dim)}
+  .chip.warn{border-color:rgba(245,181,68,.3);color:var(--warn);background:var(--warn-dim)}
+  .ghost{padding:6px 11px;border-radius:9px;border:1px solid var(--line);color:var(--ink-2);font-size:12.5px}
+  .ghost:hover{color:var(--ink);border-color:var(--line-2);background:rgba(255,255,255,.03)}
+
+  .thread{flex:1;overflow-y:auto;padding:26px 24px 8px;display:flex;flex-direction:column;gap:16px;scroll-behavior:smooth}
+  .empty{margin:auto;max-width:520px;text-align:center;color:var(--ink-3)}
+  .empty h2{color:var(--ink);font-size:19px;margin:0 0 8px;font-weight:600}
+  .empty p{margin:0 0 18px;font-size:13.5px}
+  .hints{display:grid;gap:8px;text-align:left}
+  .hint{display:flex;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:11px;background:rgba(255,255,255,.015);color:var(--ink-2);font-size:13px;transition:.16s}
+  .hint:hover{border-color:rgba(45,212,191,.28);background:var(--acc-dim);color:var(--ink)}
+  .hint kbd{font-family:var(--mono);font-size:11px;color:var(--ink-3);border:1px solid var(--line);border-radius:5px;padding:1px 5px}
+
+  .msg{display:flex;gap:11px;max-width:min(760px,86%);animation:rise .22s ease both}
+  @keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .msg.me{align-self:flex-end;flex-direction:row-reverse}
+  .avatar{width:28px;height:28px;border-radius:9px;flex:none;display:grid;place-items:center;font-size:11px;font-family:var(--mono);
+    border:1px solid var(--line);background:var(--panel-2);color:var(--ink-3)}
+  .msg.me .avatar{border-color:rgba(45,212,191,.3);background:var(--acc-dim);color:var(--acc)}
+  .bubble{padding:12px 14px;border-radius:13px;border:1px solid var(--line);background:var(--panel);white-space:pre-wrap;word-break:break-word;font-size:14px}
+  .msg.me .bubble{background:linear-gradient(160deg,rgba(45,212,191,.14),rgba(34,211,238,.06));border-color:rgba(45,212,191,.24)}
+  .meta{display:flex;gap:8px;align-items:center;margin-top:7px;font-size:11.5px;color:var(--ink-3);font-family:var(--mono)}
+  .tag{padding:1px 6px;border-radius:5px;border:1px solid var(--line);font-size:10.5px;letter-spacing:.03em}
+  .tag.local{color:var(--ink-3)}
+  .tag.llm{color:var(--acc);border-color:rgba(45,212,191,.3)}
+  .tag.deny{color:var(--bad);border-color:rgba(248,113,113,.3)}
+  .tag.confirm{color:var(--warn);border-color:rgba(245,181,68,.3)}
+
+  .cards{display:flex;flex-direction:column;gap:10px;padding:0 24px}
+  .card{border:1px solid var(--line-2);border-radius:var(--r);padding:14px;background:linear-gradient(180deg,var(--panel-2),var(--panel));animation:rise .22s ease both}
+  .card.warn{border-color:rgba(245,181,68,.32);background:linear-gradient(180deg,rgba(245,181,68,.09),rgba(13,20,29,.9))}
+  .card .k{display:flex;align-items:center;gap:8px;font-weight:600;font-size:14px}
+  .card .k .ico{width:22px;height:22px;border-radius:7px;display:grid;place-items:center;background:var(--warn-dim);color:var(--warn);font-size:12px}
+  .card .d{color:var(--ink-2);font-size:13px;margin-top:6px}
+  .card .why{margin-top:8px;font-size:12px;color:var(--ink-3);font-family:var(--mono)}
+  .row{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+  .btn{padding:8px 15px;border-radius:9px;border:1px solid var(--line-2);font-size:13px;font-weight:500;transition:.15s}
+  .btn:hover{border-color:rgba(255,255,255,.24);background:rgba(255,255,255,.03)}
+  .btn.primary{background:linear-gradient(160deg,rgba(45,212,191,.22),rgba(34,211,238,.12));border-color:rgba(45,212,191,.45);color:#c9fff6}
+  .btn.danger{color:var(--bad);border-color:rgba(248,113,113,.3)}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+
+  .composer{padding:14px 24px 20px;border-top:1px solid var(--line);background:rgba(7,11,16,.72)}
+  .box{display:flex;align-items:flex-end;gap:10px;padding:10px 10px 10px 15px;border:1px solid var(--line-2);border-radius:15px;background:var(--panel);transition:.18s}
+  .box:focus-within{border-color:rgba(45,212,191,.42);box-shadow:0 0 0 3px rgba(45,212,191,.08)}
+  .box textarea{flex:1;background:none;border:0;outline:0;resize:none;min-height:26px;max-height:150px;padding:4px 0;font-size:14px}
+  .box textarea::placeholder{color:var(--ink-3)}
+  .send{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;background:linear-gradient(160deg,rgba(45,212,191,.9),rgba(34,211,238,.75));color:#04110f;flex:none}
+  .send svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2}
+  .send:disabled{opacity:.45}
+  .underbar{display:flex;align-items:center;gap:10px;margin-top:9px;font-size:11.5px;color:var(--ink-3)}
+  .underbar .grow{flex:1}
+  select.mode{background:transparent;border:1px solid var(--line);border-radius:7px;padding:3px 6px;font-size:11.5px;color:var(--ink-2);outline:0}
+
+  .panel{border-left:1px solid var(--line);background:rgba(10,16,23,.62);display:flex;flex-direction:column;min-height:0}
+  .tabs{display:flex;gap:2px;padding:12px 12px 0}
+  .tab{flex:1;padding:8px 6px;border-radius:9px 9px 0 0;font-size:12.5px;color:var(--ink-3);border-bottom:1px solid var(--line);text-align:center}
+  .tab:hover{color:var(--ink-2)}
+  .tab.on{color:var(--acc);border-bottom-color:var(--acc);background:linear-gradient(180deg,rgba(45,212,191,.08),transparent)}
+  .panes{flex:1;overflow-y:auto;padding:14px}
+  .pane{display:none;flex-direction:column;gap:10px}
+  .pane.on{display:flex}
+  .sec{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
+  .kv{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;color:var(--ink-2);padding:3px 0}
+  .kv b{color:var(--ink);font-family:var(--mono);font-weight:600}
+  .meter{height:5px;border-radius:99px;background:rgba(255,255,255,.06);overflow:hidden;margin:6px 0 10px}
+  .meter i{display:block;height:100%;background:linear-gradient(90deg,var(--acc),var(--acc-2));width:0;transition:width .4s}
+
+  .item{border:1px solid var(--line);border-radius:10px;padding:9px 11px;background:rgba(255,255,255,.015)}
+  .item:hover{border-color:var(--line-2)}
+  .item .t{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;align-items:center}
+  .item .t .n{color:var(--ink);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .item .s{font-size:11px;color:var(--ink-3);margin-top:3px;font-family:var(--mono)}
+  .v-allow{color:var(--ok)} .v-confirm{color:var(--warn)} .v-deny{color:var(--bad)}
+  .empty-mini{color:var(--ink-3);font-size:12.5px;text-align:center;padding:22px 8px;border:1px dashed var(--line);border-radius:10px}
+  .mini-form{display:flex;gap:6px;margin-bottom:4px;flex-wrap:wrap}
+  .mini-form input{flex:1;min-width:110px;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-size:12.5px;outline:0}
+  .mini-form input:focus{border-color:rgba(45,212,191,.4)}
+  .mini-form button{padding:7px 11px;border-radius:8px;border:1px solid rgba(45,212,191,.35);color:var(--acc);font-size:12px;background:var(--acc-dim)}
+  .digest{white-space:pre-wrap;font-size:12.5px;color:var(--ink-2);line-height:1.7;font-family:var(--mono);background:rgba(0,0,0,.22);border:1px solid var(--line);border-radius:10px;padding:11px}
+
+  .gate{position:fixed;inset:0;z-index:20;display:grid;place-items:center;background:radial-gradient(700px 400px at 50% 30%,rgba(45,212,191,.08),transparent 60%),var(--bg)}
+  .gate-card{width:min(430px,92vw);border:1px solid var(--line-2);border-radius:18px;padding:28px;background:linear-gradient(180deg,var(--panel-2),var(--panel));box-shadow:0 30px 80px rgba(0,0,0,.55)}
+  .gate-card .logo{margin:0 0 16px}
+  .gate-card h1{margin:0 0 6px;font-size:19px;font-weight:600}
+  .gate-card p{margin:0 0 18px;color:var(--ink-2);font-size:13px}
+  .gate-card input{width:100%;padding:11px 13px;border-radius:10px;border:1px solid var(--line-2);background:rgba(0,0,0,.25);outline:0;font-family:var(--mono);font-size:13px}
+  .gate-card input:focus{border-color:rgba(45,212,191,.5)}
+  .err{color:var(--bad);font-size:12.5px;min-height:18px;margin-top:8px}
+  .hidden{display:none!important}
+  .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(10px);z-index:30;padding:9px 14px;border-radius:10px;font-size:12.5px;
+    background:rgba(248,113,113,.14);border:1px solid rgba(248,113,113,.35);color:#ffd7d7;opacity:0;transition:.2s;pointer-events:none}
+  .toast.on{opacity:1;transform:translateX(-50%)}
+
+  @media (max-width:1080px){ .app{grid-template-columns:56px minmax(0,1fr)} .panel{display:none} }
+  @media (max-width:720px){
+    .app{grid-template-columns:1fr}.rail{display:none}
+    .thread{padding:18px 14px 4px}.cards,.composer{padding-left:14px;padding-right:14px}.msg{max-width:94%}
+  }
+</style>
+</head>
+<body>
+
+<div class="gate" id="gate">
+  <div class="gate-card">
+    <div class="logo"><svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18" stroke-linecap="round"/><circle cx="12" cy="12" r="4"/></svg></div>
+    <h1>接入你的助理</h1>
+    <p>输入部署时设置的一次性令牌。它只保存在这台设备，不会上传到别处。</p>
+    <input id="tokenInput" type="password" placeholder="PA_TOKEN（≥16 字符）" autocomplete="off" spellcheck="false" />
+    <div class="err" id="gateErr"></div>
+    <div class="row">
+      <button class="btn primary" id="gateBtn">进入</button>
+      <button class="btn" id="serverBtn">服务器设置</button>
+    </div>
+    <div id="serverBox" class="hidden" style="margin-top:14px">
+      <input id="serverInput" placeholder="https://你的域名（留空=本机）" spellcheck="false" />
+      <div class="err" id="serverErr"></div>
+      <div class="row"><button class="btn" id="serverSave">保存</button></div>
+    </div>
+  </div>
+</div>
+
+<div class="app hidden" id="app">
+  <aside class="rail">
+    <div class="logo" title="随身"><svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18" stroke-linecap="round"/><circle cx="12" cy="12" r="4"/></svg></div>
+    <button class="rail-btn on" data-tab="receipts" title="权限小票"><svg viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg></button>
+    <button class="rail-btn" data-tab="reminders" title="提醒"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg><span class="dot hidden" id="remDot"></span></button>
+    <button class="rail-btn" data-tab="diary" title="日记"><svg viewBox="0 0 24 24"><path d="M5 4h11l3 3v13H5z"/><path d="M8 9h8M8 13h8M8 17h5"/></svg></button>
+    <button class="rail-btn" data-tab="ideas" title="灵感"><svg viewBox="0 0 24 24"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3 11v2h6v-2a6 6 0 0 0-3-11z"/></svg></button>
+    <div class="rail-spacer"></div>
+    <div class="pulse" id="pulse" title="在线"></div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div class="title">随身 <small id="personaTag">personal agent</small></div>
+      <div class="grow"></div>
+      <span class="chip" id="chatChip"><b>—</b></span>
+      <span class="chip" id="budgetChip">今日 <b>¥0.000</b></span>
+      <button class="ghost" id="lockBtn">锁定</button>
+    </header>
+
+    <section class="thread" id="thread">
+      <div class="empty" id="empty">
+        <h2>今天想先处理哪件事？</h2>
+        <p>直接说句子，不用记命令。高风险动作我会先停下来问你。</p>
+        <div class="hints">
+          <div class="hint" data-fill="把周会挪到周五">改日程 · 把周会挪到周五 <kbd>Enter</kbd></div>
+          <div class="hint" data-fill="记一下 王工说接口周三给">记一笔 · 记一下 王工说接口周三给</div>
+          <div class="hint" data-fill="明天9点提醒我交周报">建提醒 · 明天9点提醒我交周报</div>
+          <div class="hint" data-fill="今天做了什么">看日记 · 今天做了什么</div>
+          <div class="hint" data-fill="有什么建议">要建议 · 有什么建议</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="cards" id="cards"></div>
+
+    <footer class="composer">
+      <div class="box">
+        <textarea id="input" rows="1" placeholder="说点什么…"></textarea>
+        <button class="send" id="sendBtn" title="发送"><svg viewBox="0 0 24 24"><path d="M4 12l16-8-6 8 6 8z" stroke-linejoin="round"/></svg></button>
+      </div>
+      <div class="underbar">
+        <span>Enter 发送 · Shift+Enter 换行</span>
+        <span class="grow"></span>
+        <label for="modeSel">档位</label>
+        <select class="mode" id="modeSel">
+          <option value="">跟随配置</option>
+          <option value="read-only">只读</option>
+          <option value="workspace-write">工作区写入</option>
+          <option value="full-access">完全访问</option>
+        </select>
+      </div>
+    </footer>
+  </main>
+
+  <aside class="panel">
+    <div class="tabs">
+      <button class="tab on" data-tab="receipts">小票</button>
+      <button class="tab" data-tab="reminders">提醒</button>
+      <button class="tab" data-tab="diary">日记</button>
+      <button class="tab" data-tab="ideas">灵感</button>
+    </div>
+    <div class="panes">
+      <div class="pane on" id="pane-receipts">
+        <div class="sec">今日预算</div>
+        <div class="kv"><span>已用</span><b id="spent">–</b></div>
+        <div class="meter"><i id="meter"></i></div>
+        <div class="kv"><span>剩余</span><b id="remain">–</b></div>
+        <div class="kv"><span>打扰配额</span><b id="attention">–</b></div>
+        <div class="sec" style="margin-top:10px">最近动作</div>
+        <div id="receipts"><div class="empty-mini">暂无记录</div></div>
+      </div>
+      <div class="pane" id="pane-reminders">
+        <form class="mini-form" id="remForm">
+          <input id="remText" placeholder="提醒内容，如 交周报" />
+          <input id="remAt" type="datetime-local" />
+          <button type="submit">添加</button>
+        </form>
+        <div id="reminders"><div class="empty-mini">还没有提醒</div></div>
+      </div>
+      <div class="pane" id="pane-diary">
+        <div class="row" style="margin:0 0 8px">
+          <button class="btn" id="digestBtn" style="padding:6px 12px;font-size:12px">整理今天</button>
+          <button class="btn" id="refreshDiary" style="padding:6px 12px;font-size:12px">刷新</button>
+        </div>
+        <div id="digestBox"></div>
+        <div id="diary"><div class="empty-mini">今天还没有记录</div></div>
+      </div>
+      <div class="pane" id="pane-ideas">
+        <div class="kv"><span>今日剩余配额</span><b id="quota">–</b></div>
+        <div id="ideas"><div class="empty-mini">暂无建议</div></div>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const state = {
+    token: localStorage.getItem('pa_token') || '',
+    mode: localStorage.getItem('pa_mode') || '',
+    busy: false,
+    pending: null
+  };
+
+  const toast = (msg) => {
+    const el = $('toast');
+    el.textContent = msg;
+    el.classList.add('on');
+    clearTimeout(toast._t);
+    toast._t = setTimeout(() => el.classList.remove('on'), 2600);
+  };
+
+  // Web/桌面端走同源；移动端连接远端自建服务器，从本地设置里取基址。
+  const API_BASE = (localStorage.getItem('pa_api_base') || '').replace(/\/+$/, '');
+  const api = async (path, options = {}) => {
+    const res = await fetch(API_BASE + path, {
+      ...options,
+      headers: { 'content-type': 'application/json', authorization: `Bearer ${state.token}`, ...(options.headers || {}) }
+    });
+    const body = await res.json().catch(() => ({}));
+    if (res.status === 401) { lock('令牌无效或已更换'); throw new Error('unauthorised'); }
+    return body;
+  };
+
+  const money = (n) => `¥${Number(n ?? 0).toFixed(3)}`;
+  const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const hhmm = (iso) => {
+    const d = new Date(iso);
+    return Number.isNaN(d.getTime()) ? '' : `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  };
+
+  function lock(message) {
+    localStorage.removeItem('pa_token');
+    state.token = '';
+    $('app').classList.add('hidden');
+    $('gate').classList.remove('hidden');
+    if (message) $('gateErr').textContent = message;
+  }
+
+  function addMessage(text, mine = false, meta = {}) {
+    const empty = $('empty');
+    if (empty) empty.remove();
+    const el = document.createElement('div');
+    el.className = `msg${mine ? ' me' : ''}`;
+    const av = document.createElement('div');
+    av.className = 'avatar';
+    av.textContent = mine ? '我' : '随';
+    const wrap = document.createElement('div');
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    bubble.textContent = text;
+    wrap.appendChild(bubble);
+    if (meta.tag || meta.time) {
+      const m = document.createElement('div');
+      m.className = 'meta';
+      if (meta.tag) {
+        const t = document.createElement('span');
+        t.className = `tag ${meta.tagClass || ''}`;
+        t.textContent = meta.tag;
+        m.appendChild(t);
+      }
+      if (meta.time) {
+        const t = document.createElement('span');
+        t.textContent = meta.time;
+        m.appendChild(t);
+      }
+      wrap.appendChild(m);
+    }
+    el.append(av, wrap);
+    $('thread').appendChild(el);
+    $('thread').scrollTop = $('thread').scrollHeight;
+  }
+
+  const VERDICT_CN = { allow: '放行', confirm: '需确认', deny: '拒绝' };
+
+  function renderTurn(result) {
+    for (const artifact of result.artifacts || []) {
+      if (artifact.redacted) addMessage('（高敏内容不在此显示，请在本机查看）', false, { tag: 'D2 已脱敏', tagClass: 'deny' });
+      else if (artifact.text) addMessage(artifact.text, false, { tag: artifact.source === 'llm' ? '模型' : '本地', tagClass: artifact.source === 'llm' ? 'llm' : 'local', time: hhmm(new Date().toISOString()) });
+      else if (artifact.kind === 'change') addMessage('已修改，可在 60 秒内撤销。', false, { tag: '已执行' });
+      else if (artifact.kind === 'reminder') addMessage(`已记下：${artifact.reminder.text}`, false, { tag: '提醒' });
+      else if (artifact.kind === 'note') addMessage('记下了。', false, { tag: '日记' });
+      else if (artifact.kind === 'diary') addMessage(artifact.digest.text, false, { tag: '日记草稿' });
+      else if (artifact.kind === 'suggestions') {
+        addMessage(artifact.candidates.length ? `现在有 ${artifact.candidates.length} 条建议，见右侧「灵感」。` : '现在没有值得打扰你的事。', false, { tag: '灵感' });
+      } else addMessage(`已完成（${artifact.kind}）`, false, { tag: '完成' });
+    }
+    if (result.decision && result.decision.verdict !== 'allow') {
+      const label = VERDICT_CN[result.decision.verdict] || result.decision.verdict;
+      addMessage(`${label}：${result.decision.reason}`, false, { tag: label, tagClass: result.decision.verdict === 'deny' ? 'deny' : 'confirm' });
+    }
+    if (result.pending) renderPending(result.pending);
+    refreshAll();
+  }
+
+  function renderPending(pending) {
+    state.pending = pending;
+    const isBudget = pending.cardType === 'budget';
+    const card = document.createElement('div');
+    card.className = 'card warn';
+    const k = document.createElement('div');
+    k.className = 'k';
+    k.innerHTML = `<span class="ico">${isBudget ? '¥' : '!'}</span>${isBudget ? '这次调用会超预算' : '需要你点头'}`;
+    const d = document.createElement('div');
+    d.className = 'd';
+    d.textContent = pending.title || pending.reason || '';
+    const why = document.createElement('div');
+    why.className = 'why';
+    why.textContent = `动作 ${pending.actionId || '?'} · 风险 ${pending.risk || '?'} · 需要 ${pending.requires} · 数据 ${(pending.dataClasses || []).join('/') || 'D0'}`;
+    const row = document.createElement('div');
+    row.className = 'row';
+    const yes = document.createElement('button');
+    yes.className = 'btn primary';
+    yes.textContent = '允许一次';
+    yes.onclick = () => decide(true, card);
+    const no = document.createElement('button');
+    no.className = 'btn danger';
+    no.textContent = '拒绝';
+    no.onclick = () => decide(false, card);
+    row.append(yes, no);
+    card.append(k, d, why, row);
+    $('cards').appendChild(card);
+  }
+
+  async function decide(approve, card) {
+    if (!state.pending || state.busy) return;
+    state.busy = true;
+    try {
+      const result = await api('/api/approve', {
+        method: 'POST',
+        body: JSON.stringify({ runId: state.pending.runId, approve })
+      });
+      card.remove();
+      state.pending = null;
+      addMessage(approve ? '已执行。' : '已拒绝，什么都没做。', false, { tag: approve ? '已执行' : '已拒绝', tagClass: approve ? '' : 'deny' });
+      renderTurn(result);
+    } catch (err) {
+      toast(`操作失败：${err.message}`);
+    } finally {
+      state.busy = false;
+    }
+  }
+
+  async function send() {
+    const text = $('input').value.trim();
+    if (!text || state.busy) return;
+    state.busy = true;
+    $('sendBtn').disabled = true;
+    addMessage(text, true, { time: hhmm(new Date().toISOString()) });
+    $('input').value = '';
+    $('input').style.height = 'auto';
+    try {
+      const payload = state.mode ? { text, mode: state.mode } : { text };
+      const result = await api('/api/turn', { method: 'POST', body: JSON.stringify(payload) });
+      renderTurn(result);
+    } catch (err) {
+      addMessage(`出错了：${err.message}`, false, { tag: '错误', tagClass: 'deny' });
+    } finally {
+      state.busy = false;
+      $('sendBtn').disabled = false;
+      $('input').focus();
+    }
+  }
+
+  function switchTab(tab) {
+    document.querySelectorAll('.tab').forEach((el) => el.classList.toggle('on', el.dataset.tab === tab));
+    document.querySelectorAll('.rail-btn').forEach((el) => el.classList.toggle('on', el.dataset.tab === tab));
+    document.querySelectorAll('.pane').forEach((el) => el.classList.toggle('on', el.id === `pane-${tab}`));
+    if (tab === 'reminders') loadReminders();
+    if (tab === 'diary') loadDiary();
+    if (tab === 'ideas') loadIdeas();
+  }
+
+  async function refreshAll() {
+    try {
+      const s = await api('/api/state');
+      $('personaTag').textContent = s.persona || 'personal agent';
+      const used = Number(s.budget?.spentUsd ?? 0);
+      const cap = Number(s.budget?.perDayUsd ?? 1);
+      $('budgetChip').innerHTML = `今日 <b>${money(used)}</b> / ${money(cap)}`;
+      $('spent').textContent = money(used);
+      $('remain').textContent = money(s.budget?.remainingUsd ?? 0);
+      $('meter').style.width = `${Math.min(100, (used / (cap || 1)) * 100)}%`;
+      $('attention').textContent = `${s.attention?.remaining ?? 0} / ${s.attention?.quota ?? 0}`;
+      $('quota').textContent = `${s.attention?.remaining ?? 0} 条`;
+      $('chatChip').innerHTML = s.chat?.mode === 'llm' ? `模型 <b>${esc(s.chat.model || '')}</b>` : '本地模式 <b>offline</b>';
+      $('chatChip').className = `chip ${s.chat?.mode === 'llm' ? 'acc' : 'warn'}`;
+      $('remDot').classList.toggle('hidden', !(s.reminders?.pending > 0));
+      if (!state.mode) $('modeSel').value = s.mode || '';
+      await loadReceipts();
+    } catch { /* 网络抖动不打断对话 */ }
+  }
+
+  async function loadReceipts() {
+    const { receipts } = await api('/api/receipts?limit=14');
+    const box = $('receipts');
+    if (!receipts?.length) { box.innerHTML = '<div class="empty-mini">暂无记录</div>'; return; }
+    box.innerHTML = receipts.map((r) => {
+      const v = String(r.verdict || '');
+      const cls = v.includes('deny') ? 'v-deny' : v.includes('confirm') || v.includes('await') ? 'v-confirm' : 'v-allow';
+      return `<div class="item"><div class="t"><span class="n">${esc(r.kind)}</span><span class="${cls}">${esc(v)}</span></div>
+        <div class="s">${esc(r.tool || r.reason || '')}${r.cost ? ` · ¥${r.cost}` : ''}</div></div>`;
+    }).join('');
+  }
+
+  async function loadReminders() {
+    const { reminders } = await api('/api/reminders');
+    const box = $('reminders');
+    if (!reminders?.length) { box.innerHTML = '<div class="empty-mini">还没有提醒</div>'; return; }
+    box.innerHTML = reminders.map((r) => `
+      <div class="item">
+        <div class="t"><span class="n">${esc(r.text)}</span>
+          <button class="btn" data-done="${esc(r.id)}" style="padding:3px 9px;font-size:11px">完成</button></div>
+        <div class="s">${esc(String(r.at).replace('T', ' ').slice(0, 16))}</div>
+      </div>`).join('');
+    box.querySelectorAll('[data-done]').forEach((btn) => {
+      btn.onclick = async () => {
+        await api(`/api/reminders/${encodeURIComponent(btn.dataset.done)}/done`, { method: 'POST' });
+        loadReminders();
+        refreshAll();
+      };
+    });
+  }
+
+  async function loadDiary() {
+    const { entries } = await api('/api/diary');
+    const box = $('diary');
+    if (!entries?.length) { box.innerHTML = '<div class="empty-mini">今天还没有记录</div>'; return; }
+    box.innerHTML = entries.slice().reverse().map((e) => `
+      <div class="item"><div class="t"><span class="n">${esc(e.text)}</span></div>
+      <div class="s">${esc(hhmm(e.at))}</div></div>`).join('');
+  }
+
+  async function loadIdeas() {
+    const { suggestions, attention } = await api('/api/suggestions');
+    $('quota').textContent = `${attention?.remaining ?? 0} 条`;
+    const box = $('ideas');
+    if (!suggestions?.length) { box.innerHTML = '<div class="empty-mini">现在没有值得打扰你的事</div>'; return; }
+    box.innerHTML = suggestions.map((s) => `
+      <div class="item">
+        <div class="t"><span class="n">${esc(s.title)}</span>
+          <button class="btn" data-dismiss="${esc(s.id)}" style="padding:3px 9px;font-size:11px">忽略</button></div>
+        <div class="s">${esc(s.why)}</div>
+      </div>`).join('');
+    box.querySelectorAll('[data-dismiss]').forEach((btn) => {
+      btn.onclick = async () => {
+        await api('/api/suggestions/dismiss', { method: 'POST', body: JSON.stringify({ id: btn.dataset.dismiss }) });
+        loadIdeas();
+      };
+    });
+  }
+
+  async function digest() {
+    const { digest: d } = await api('/api/diary/digest');
+    $('digestBox').innerHTML = `<div class="digest">${esc(d.text)}</div>`;
+  }
+
+  async function enter() {
+    const token = $('tokenInput').value.trim();
+    if (token.length < 16) { $('gateErr').textContent = '令牌至少 16 字符'; return; }
+    state.token = token;
+    try {
+      await api('/api/state');
+      localStorage.setItem('pa_token', token);
+      $('gate').classList.add('hidden');
+      $('app').classList.remove('hidden');
+      $('gateErr').textContent = '';
+      refreshAll();
+      $('input').focus();
+    } catch { /* lock() 已处理 */ }
+  }
+
+  $('serverBtn').onclick = () => {
+    $('serverBox').classList.toggle('hidden');
+    $('serverInput').value = localStorage.getItem('pa_api_base') || '';
+  };
+  $('serverSave').onclick = () => {
+    const raw = $('serverInput').value.trim().replace(/\/+$/, '');
+    if (raw && !/^https?:\/\/[\w.-]+(:\d+)?$/.test(raw)) {
+      $('serverErr').textContent = '形如 https://pa.example.com';
+      return;
+    }
+    localStorage.setItem('pa_api_base', raw);
+    $('serverErr').textContent = '已保存';
+    if (state.token) refreshAll();
+  };
+
+  $('gateBtn').onclick = enter;
+  $('tokenInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') enter(); });
+  $('sendBtn').onclick = send;
+  $('lockBtn').onclick = () => lock('');
+  $('refreshDiary').onclick = loadDiary;
+  $('digestBtn').onclick = digest;
+
+  $('modeSel').value = state.mode;
+  $('modeSel').onchange = () => {
+    state.mode = $('modeSel').value;
+    localStorage.setItem('pa_mode', state.mode);
+  };
+
+  $('input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+  });
+  $('input').addEventListener('input', (e) => {
+    e.target.style.height = 'auto';
+    e.target.style.height = `${Math.min(150, e.target.scrollHeight)}px`;
+  });
+
+  document.querySelectorAll('.hint').forEach((el) => {
+    el.onclick = () => { $('input').value = el.dataset.fill; $('input').focus(); };
+  });
+  document.querySelectorAll('[data-tab]').forEach((el) => {
+    el.onclick = () => switchTab(el.dataset.tab);
+  });
+
+  $('remForm').onsubmit = async (e) => {
+    e.preventDefault();
+    const text = $('remText').value.trim();
+    const at = $('remAt').value;
+    if (!text || !at) { toast('内容和时间都要填'); return; }
+    const res = await api('/api/reminders', { method: 'POST', body: JSON.stringify({ text, at }) });
+    if (res.ok) { $('remText').value = ''; loadReminders(); refreshAll(); }
+    else toast(res.message || '添加失败');
+  };
+
+  // 桌面端由主进程带 token 启动（?token=...），移动端可手动粘贴。
+  // 只从 URL 读一次并立刻清掉，避免令牌留在地址栏/历史里。
+  const urlToken = new URLSearchParams(location.search).get('token');
+  if (urlToken && urlToken.length >= 16) {
+    state.token = urlToken;
+    localStorage.setItem('pa_token', urlToken);
+    history.replaceState(null, '', location.pathname);
+  }
+
+  if (state.token) {
+    api('/api/state').then(() => {
+      $('gate').classList.add('hidden');
+      $('app').classList.remove('hidden');
+      refreshAll();
+    }).catch(() => lock(''));
+  }
+})();
+</script>
+</body>
+</html>

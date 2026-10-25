@@ -1,0 +1,93 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: 单元/集成测试
+        working-directory: packages/personal
+        run: |
+          node --test "test/**/*.test.mjs"
+          node test/selfcheck.mjs
+      - name: 预算校验（≤300 元）
+        run: node deploy/budget-check.mjs --json
+
+  desktop:
+    needs: test
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: 安装依赖
+        working-directory: apps/desktop
+        run: npm ci --no-audit --no-fund
+      - name: 打包为便携版 exe
+        working-directory: apps/desktop
+        run: npx electron-builder --win --x64
+      - name: 上传产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-windows
+          path: apps/desktop/dist/*.exe
+          if-no-files-found: error
+
+  android:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: 安装依赖并生成 android 工程
+        working-directory: apps/mobile
+        run: |
+          npm ci --no-audit --no-fund
+          npx cap add android || true
+          npx cap sync android
+      - name: 构建 debug APK
+        working-directory: apps/mobile/android
+        run: ./gradlew assembleDebug
+      - name: 上传产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: apps/mobile/android/app/build/outputs/apk/**/*.apk
+          if-no-files-found: error
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [desktop, android]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: 下载全部产物
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: 发布 Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            artifacts/desktop-windows/*.exe
+            artifacts/android-apk/**/*.apk

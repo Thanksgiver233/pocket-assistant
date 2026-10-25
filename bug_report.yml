@@ -1,0 +1,72 @@
+name: Bug 报告
+description: 报告一个可复现的问题。治理相关的问题请先读 SECURITY.md 判断是否应走私密通道。
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢反馈。请先跑一遍 `node --test "test/**/*.test.mjs"`——如果测试红了，
+        直接贴失败用例名比描述现象有用得多。
+
+        ⚠️ 安全问题（审批绕过、数据外泄、审计篡改）**不要**在这里发，
+        请走 [私密漏洞报告](../../security/advisories/new)。
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: 出问题的环节
+      options:
+        - 对话/回答
+        - 审批（该问没问 / 不该问问了）
+        - 提醒
+        - 日记
+        - 建议/主动推送
+        - 桌面端启动/打包
+        - 安卓端
+        - CLI（pa-run 等）
+        - 部署/服务器
+        - 其他
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤
+      placeholder: |
+        1. pa-serve 启动，档位 = ...
+        2. 发送「...」
+        3. 期望 ... 实际 ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期望行为
+      placeholder: 引用 docs/08 符合性矩阵的条目编号（如果相关）
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: 日志/输出
+      placeholder: |
+        journalctl -u pa -n 50 或 pa-serve 的控制台输出。
+        注意先脱敏：不要贴令牌、邮件正文、日记内容。
+
+  - type: input
+    id: version
+    attributes:
+      label: 版本/提交
+      placeholder: "git rev-parse --short HEAD 的输出"
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: 自检
+      options:
+        - label: 我已确认测试全绿（问题不在已知用例覆盖范围内）
+        - label: 我已脱敏日志中的令牌与个人数据
+        - label: 这不是安全问题（或我已改走私密通道）

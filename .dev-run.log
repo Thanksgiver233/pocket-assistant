@@ -1,0 +1,19 @@
+Downloading Electron binary...
+TypeError: fetch failed
+D:\Personal Agent\apps\desktop\node_modules\electron\index.js:43
+      throw new Error(
+      ^
+
+Error: Electron failed to install correctly. Please delete `node_modules/electron` and run "npx install-electron --no" manually.
+    at getElectronPath (D:\Personal Agent\apps\desktop\node_modules\electron\index.js:43:13)
+    at Object.<anonymous> (D:\Personal Agent\apps\desktop\node_modules\electron\index.js:52:18)
+    at Module._compile (node:internal/modules/cjs/loader:1937:14)
+    at Object..js (node:internal/modules/cjs/loader:2070:10)
+    at Module.load (node:internal/modules/cjs/loader:1658:32)
+    at Module._load (node:internal/modules/cjs/loader:1450:12)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:268:19)
+    at Module.require (node:internal/modules/cjs/loader:1681:12)
+    at require (node:internal/modules/helpers:157:16)
+    at Object.<anonymous> (D:\Personal Agent\apps\desktop\main.cjs:15:39)
+
+Node.js v24.22.0

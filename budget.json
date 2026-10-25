@@ -1,0 +1,116 @@
+{
+  "currency": "CNY",
+  "voucher": 300,
+  "asOf": "2026-10-24",
+  "scenario": "单用户 / 单机 / 首年",
+  "assumptions": {
+    "turnsPerDay": 30,
+    "inputTokensPerTurn": 1500,
+    "outputTokensPerTurn": 400,
+    "activeDaysPerMonth": 30,
+    "llmHeadroomFactor": 1.6
+  },
+  "items": [
+    {
+      "id": "swas",
+      "name": "轻量应用服务器",
+      "spec": "2 核 2G / 40GB ESSD / 200M 峰值带宽 / 不限流量",
+      "qty": 1,
+      "unit": "年",
+      "unitPrice": 68,
+      "amount": 68,
+      "kind": "fixed",
+      "basis": "新用户专享价 68 元/年（秒杀 38 元/年，常规 99–128 元/年）",
+      "note": "若未抢到 68 元档，用 99 元常规价仍在本预算内"
+    },
+    {
+      "id": "domain",
+      "name": "域名 .com",
+      "spec": "首年注册",
+      "qty": 1,
+      "unit": "年",
+      "unitPrice": 85,
+      "amount": 85,
+      "kind": "fixed",
+      "basis": "2026-11-01 前 85 元/首年，之后 90 元；续费 95–99 元",
+      "note": "可换 .top/.xyz 首年 9–15 元，进一步压到 200 元内"
+    },
+    {
+      "id": "tls",
+      "name": "SSL 证书",
+      "spec": "DV 单域名（Let's Encrypt / 阿里云免费证书）",
+      "qty": 1,
+      "unit": "年",
+      "unitPrice": 0,
+      "amount": 0,
+      "kind": "fixed",
+      "basis": "免费",
+      "note": "acme.sh 自动续期"
+    },
+    {
+      "id": "oss-storage",
+      "name": "OSS 标准存储（备份）",
+      "spec": "10GB，前 5GB 免费",
+      "qty": 5,
+      "unit": "GB·年",
+      "unitPrice": 1.44,
+      "amount": 7.2,
+      "kind": "fixed",
+      "basis": "0.12 元/GB/月，前 5GB 免费",
+      "note": "备份为增量 tar，实际占用 < 1GB，此项为上限估算"
+    },
+    {
+      "id": "oss-traffic",
+      "name": "OSS 请求与外网流量",
+      "spec": "备份上传（内网免费）+ 偶尔恢复下载",
+      "qty": 1,
+      "unit": "年",
+      "unitPrice": 3,
+      "amount": 3,
+      "kind": "fixed",
+      "basis": "按量，估算值",
+      "note": "ECS 内网访问 OSS 不计流量费"
+    },
+    {
+      "id": "llm",
+      "name": "百炼 Qwen3.8-Flash",
+      "spec": "输入 0.8 元/百万 token，输出 2.4 元/百万 token",
+      "qty": 1,
+      "unit": "年",
+      "unitPrice": 60,
+      "amount": 60,
+      "kind": "variable",
+      "basis": "30 turn/日 × (1.5k 入 + 0.4k 出) ≈ 1.35M 入 + 0.36M 出/月 ≈ 1.94 元/月；乘 1.6 波动系数 ≈ 3.1 元/月 ≈ 37 元/年，取整 60 元",
+      "note": "新用户另有 100 万 token 免费额度，首月接近 0 元"
+    },
+    {
+      "id": "push",
+      "name": "推送通道",
+      "spec": "企业微信群机器人 + 邮件（阿里云邮件推送免费额度）",
+      "qty": 1,
+      "unit": "年",
+      "unitPrice": 0,
+      "amount": 0,
+      "kind": "fixed",
+      "basis": "免费",
+      "note": "不采购短信，避免 0.045 元/条的可变成本"
+    },
+    {
+      "id": "monitor",
+      "name": "监控与告警",
+      "spec": "轻量自带监控 + /healthz + 每日自检邮件",
+      "qty": 1,
+      "unit": "年",
+      "unitPrice": 0,
+      "amount": 0,
+      "kind": "fixed",
+      "basis": "免费",
+      "note": "不采购 ARMS/日志服务"
+    }
+  ],
+  "reserve": {
+    "name": "风险缓冲",
+    "amount": 40,
+    "purpose": "续费涨价、临时扩容、ASR 试用；剩余未分配额度作为安全垫"
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://piagent.io/schemas/tool-manifest.v1.json",
+  "title": "pa.tool-manifest.v1",
+  "description": "Every tool must declare its risk, reversibility, data classes and whether it can be undone. The registry derives risk upward from these facts; a manifest cannot under-declare.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "connector", "kind", "risk", "reversible", "data_in", "data_out", "egress", "idempotent", "approval"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "id": { "type": "string", "pattern": "^[a-z0-9]+(\\.[a-z0-9_]+)+$", "maxLength": 80 },
+    "connector": { "type": "string", "minLength": 1, "maxLength": 60 },
+    "kind": { "type": "string", "enum": ["mcp", "native", "pack"] },
+    "risk": { "type": "string", "enum": ["R0", "R1", "R2", "R3", "R4"] },
+    "reversible": { "type": "boolean" },
+    "undo": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "properties": {
+        "tool": { "type": "string" },
+        "strategy": { "type": "string", "enum": ["snapshot_restore", "compensating_action", "none"] },
+        "window_s": { "type": "integer", "minimum": 0, "maximum": 86400 }
+      },
+      "required": ["strategy"]
+    },
+    "data_in": { "type": "array", "minItems": 1, "items": { "type": "string", "enum": ["D0", "D1", "D2", "D3"] } },
+    "data_out": { "type": "string", "enum": ["D0", "D1", "D2", "D3"] },
+    "egress": { "type": "boolean" },
+    "idempotent": { "type": "boolean" },
+    "cost_hint": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "tokens": { "type": "number", "minimum": 0 },
+        "usd": { "type": "number", "minimum": 0 }
+      }
+    },
+    "dry_run": { "type": "boolean" },
+    "approval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["default"],
+      "properties": {
+        "default": { "type": "string", "enum": ["auto", "confirm", "deny"] },
+        "standing_grant": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": { "max_ttl_h": { "type": "integer", "minimum": 1, "maximum": 8760 } }
+        },
+        "identity_check": { "type": "string", "enum": ["password", "biometric", "totp"] }
+      }
+    },
+    "summary": { "type": "string", "maxLength": 200 },
+    "parameters": { "type": "object" }
+  }
+}

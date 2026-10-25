@@ -1,0 +1,47 @@
+{
+  "name": "@piagent/personal",
+  "version": "0.1.0-p0",
+  "description": "PIA — Personal Agent on the PIagent base: consent kernel, audit ledger, budget, journal, connectors, HTTP service and CLIs.",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "exports": {
+    ".": "./src/index.mjs",
+    "./compose": "./src/compose.mjs",
+    "./schemas/*": "./schemas/*"
+  },
+  "bin": {
+    "pa-init": "./bin/pa-init.mjs",
+    "pa-doctor": "./bin/pa-doctor.mjs",
+    "pa-run": "./bin/pa-run.mjs",
+    "pa-forget": "./bin/pa-forget.mjs",
+    "pa-grant": "./bin/pa-grant.mjs",
+    "pa-serve": "./bin/pa-serve.mjs"
+  },
+  "scripts": {
+    "test": "node --test test/",
+    "selfcheck": "node test/selfcheck.mjs",
+    "doctor": "node bin/pa-doctor.mjs ."
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "files": [
+    "src",
+    "schemas",
+    "bin",
+    "web",
+    "docs"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/YOUR_GITHUB_USERNAME/personal-agent.git"
+  },
+  "bugs": {
+    "url": "https://github.com/YOUR_GITHUB_USERNAME/personal-agent/issues"
+  },
+  "homepage": "https://github.com/YOUR_GITHUB_USERNAME/personal-agent#readme",
+  "author": "PIA Contributors"
+}

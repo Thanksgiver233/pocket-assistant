@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://piagent.io/schemas/memory-record.v1.json",
+  "title": "pa.memory-record.v1",
+  "description": "One remembered fact. Must carry at least one citation; D3 is structurally impossible.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "layer", "subject", "statement", "confidence", "citation", "data_class", "created_at", "status"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^m_[0-9A-Za-z]+$" },
+    "layer": { "type": "string", "enum": ["episodic", "semantic", "procedural"] },
+    "subject": { "type": "string", "minLength": 1, "maxLength": 80 },
+    "statement": { "type": "string", "minLength": 4, "maxLength": 280 },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "citation": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["kind", "ref"],
+        "properties": {
+          "kind": { "type": "string", "enum": ["turn", "episode", "explicit", "connector", "file"] },
+          "ref": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "data_class": { "type": "string", "enum": ["D0", "D1", "D2"] },
+    "tags": { "type": "array", "maxItems": 12, "items": { "type": "string" } },
+    "source": { "type": "string", "enum": ["user_explicit", "observed", "inferred"] },
+    "fingerprint": { "type": "string" },
+    "created_at": { "type": "string", "format": "date-time" },
+    "expires_at": { "type": ["string", "null"], "format": "date-time" },
+    "last_used_at": { "type": "string", "format": "date-time" },
+    "status": { "type": "string", "enum": ["active", "superseded", "forgotten"] },
+    "supersedes": { "type": ["string", "null"] }
+  }
+}

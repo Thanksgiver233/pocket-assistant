@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://piagent.io/schemas/audit-event.v1.json",
+  "title": "pa.audit-event.v1",
+  "description": "Append-only ledger record. `hash` commits to `prev_hash` plus the canonical JSON of the record without hash fields; editing any field breaks the chain.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["ts", "kind", "prev_hash", "hash"],
+  "properties": {
+    "ts": { "type": "string", "format": "date-time" },
+    "run_id": { "type": "string" },
+    "turn_id": { "type": "string" },
+    "kind": { "type": "string", "enum": ["intent", "decision", "tool_call", "tool_result", "delivery", "budget", "memory"] },
+    "tool": { "type": ["string", "null"] },
+    "risk": { "type": "string", "enum": ["R0", "R1", "R2", "R3", "R4"] },
+    "decision": { "type": "object" },
+    "data_classes": { "type": "array", "items": { "type": "string", "enum": ["D0", "D1", "D2", "D3"] } },
+    "egress": { "type": "boolean" },
+    "outcome": { "type": "object" },
+    "cost": { "type": ["object", "null"] },
+    "channel": { "type": "string" },
+    "chars": { "type": "integer", "minimum": 0 },
+    "untrusted": { "type": "boolean" },
+    "kinds": { "type": "array", "items": { "type": "string" } },
+    "prev_hash": { "type": "string", "pattern": "^(sha256:[0-9a-f]{64}|sha256:genesis)$" },
+    "hash": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+  }
+}

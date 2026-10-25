@@ -1,0 +1,51 @@
+name: 功能建议
+description: 提议一个新能力。先想清楚它属于哪条产品主线，以及它会不会破坏反需求。
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        本项目的反需求与需求同等重要：
+        **不做全量录屏、不做自动支付、不做社交、不做无限记忆。**
+        提议前请确认它不在反需求清单里。
+
+  - type: dropdown
+    id: line
+    attributes:
+      label: 属于哪条主线/差异点
+      options:
+        - 生活安排与智能提醒
+        - 工作日记与自动整理
+        - 主动灵感与建议
+        - 权限小票（D1）
+        - 打扰预算（D2）
+        - 接管即教学（D3）
+        - 记忆体检（D4）
+        - 可携带记忆（D5）
+        - 三端体验
+        - 都不是
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: 你想解决什么问题
+      placeholder: 描述场景，而不是方案。"我每天要手动……" 比 "加一个按钮" 有用。
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 你的想法
+
+  - type: checkboxes
+    id: principles
+    attributes:
+      label: 产品原则自检
+      options:
+        - label: 能撤销（没有 undo 的动作不进自动化候选）
+        - label: 不增加打扰（推送类需要过打扰预算）
+        - label: 不引入 D3/凭证入库
+        - label: 离线可用（不依赖常驻外网服务）

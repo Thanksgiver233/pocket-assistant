@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://piagent.io/schemas/grant.v1.json",
+  "title": "pa.grant.v1",
+  "description": "A standing consent: exact connector digest, exact actions, exact data classes, bounded TTL. Changing the connector invalidates it.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["grant_id", "connector", "actions", "data_classes", "issued_at", "expires_at", "issued_by", "connector_digest"],
+  "properties": {
+    "grant_id": { "type": "string", "pattern": "^g_[0-9A-Za-z]+$" },
+    "connector": { "type": "string", "minLength": 1 },
+    "actions": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string" } },
+    "data_classes": { "type": "array", "uniqueItems": true, "items": { "type": "string", "enum": ["D0", "D1", "D2"] } },
+    "constraints": { "type": "object" },
+    "issued_at": { "type": "string", "format": "date-time" },
+    "expires_at": { "type": "string", "format": "date-time" },
+    "issued_by": { "type": "string", "enum": ["user", "policy"] },
+    "connector_digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "revoked_at": { "type": ["string", "null"], "format": "date-time" }
+  }
+}
